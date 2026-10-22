@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Home</string>
+    <string name="greet_night">Good night</string>
+    <string name="greet_morning">Good morning</string>
+    <string name="greet_afternoon">Good afternoon</string>
+    <string name="greet_evening">Good evening</string>
+    <string name="inputs">Inputs</string>
+    <string name="live_tv">Live TV</string>
+    <string name="ethernet">Ethernet</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="offline">Offline</string>
+    <string name="doorbell">● Doorbell</string>
+    <string name="doorbell_offline">Doorbell offline</string>
+    <string name="key_helper_name">Home: colour buttons</string>
+    <string name="key_helper_desc">Holding a colour button on the remote opens the lights panel, the screen saver or the doorbell camera from any app, and shows the doorbell and lights overlays. Short presses pass through untouched. It does not read the screen.</string>
+    <string name="hold_prefix">Hold: %1$s</string>
+    <string name="hold_doorbell">Doorbell</string>
+    <string name="hold_lights">Lights</string>
+    <string name="hold_saver">Art</string>
+    <string name="ha_title">Lights</string>
+    <string name="ha_on_count">%1$d on</string>
+    <string name="ha_on">On</string>
+    <string name="ha_off">Off</string>
+    <string name="ha_unavailable">Unavailable</string>
+    <string name="ha_hint">OK on / off   ◀ ▶ brightness   Back close</string>
+    <string name="ha_no_token">Home Assistant not set up: run tools/set_ha.py</string>
+    <string name="ha_bad_token">Home Assistant rejected the token: run tools/set_ha.py</string>
+    <string name="ha_offline">Home Assistant unreachable</string>
+    <string name="ha_connecting">Connecting to Home Assistant…</string>
+    <string name="ha_no_lights">No lights found</string>
+    <string name="dream_name">Home: art and clock</string>
+    <string name="add_app">Add app</string>
+    <string name="pick_app">Choose an app for the dock (Back cancels)</string>
+    <string name="slot_cleared">Removed from the dock</string>
+    <string name="replace_app">Replace app</string>
+    <string name="remove_app">Remove from dock</string>
+    <string name="cancel">Cancel</string>
+    <string name="cannot_open">Cannot open %1$s</string>
+</resources>

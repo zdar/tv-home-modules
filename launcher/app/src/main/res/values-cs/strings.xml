@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Domů</string>
+    <string name="greet_night">Dobrou noc</string>
+    <string name="greet_morning">Dobré ráno</string>
+    <string name="greet_afternoon">Dobré odpoledne</string>
+    <string name="greet_evening">Dobrý večer</string>
+    <string name="inputs">Vstupy</string>
+    <string name="live_tv">Živé vysílání</string>
+    <string name="ethernet">Ethernet</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="offline">Bez připojení</string>
+    <string name="doorbell">● Zvonek</string>
+    <string name="doorbell_offline">Zvonek nedostupný</string>
+    <string name="key_helper_name">Domů: barevná tlačítka</string>
+    <string name="key_helper_desc">Podržení barevného tlačítka na ovladači otevře z kterékoli aplikace panel světel, spořič nebo kameru zvonku a zobrazuje překryvy zvonku a světel. Krátká stisknutí propouští beze změny. Nečte obsah obrazovky.</string>
+    <string name="hold_prefix">Podržet: %1$s</string>
+    <string name="hold_doorbell">Zvonek</string>
+    <string name="hold_lights">Světla</string>
+    <string name="hold_saver">Spořič</string>
+    <string name="ha_title">Světla</string>
+    <string name="ha_on_count">%1$d svítí</string>
+    <string name="ha_on">Zap</string>
+    <string name="ha_off">Vyp</string>
+    <string name="ha_unavailable">Nedostupné</string>
+    <string name="ha_hint">OK zap / vyp   ◀ ▶ jas   Zpět zavřít</string>
+    <string name="ha_no_token">Home Assistant není nastaven: spusťte tools/set_ha.py</string>
+    <string name="ha_bad_token">Home Assistant odmítl token: spusťte tools/set_ha.py</string>
+    <string name="ha_offline">Home Assistant je nedostupný</string>
+    <string name="ha_connecting">Připojuji se k Home Assistant…</string>
+    <string name="ha_no_lights">Žádná světla</string>
+    <string name="dream_name">Domů: obrazy a hodiny</string>
+    <string name="add_app">Přidat aplikaci</string>
+    <string name="pick_app">Vyberte aplikaci do doku (Zpět = zrušit)</string>
+    <string name="slot_cleared">Odebráno z doku</string>
+    <string name="replace_app">Vyměnit aplikaci</string>
+    <string name="remove_app">Odebrat z doku</string>
+    <string name="cancel">Zrušit</string>
+    <string name="cannot_open">Nelze otevřít %1$s</string>
+</resources>

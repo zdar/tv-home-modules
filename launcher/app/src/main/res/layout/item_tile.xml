@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One app: a 16:9 card plus a name that fades in under it while focused.
+     The outer frame fills the grid/dock cell and centres the tile in it.
+     MainActivity shrinks the holder to half size for dock row 2. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/tile"
+        android:layout_width="188dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:clipChildren="false"
+        android:orientation="vertical">
+
+        <!-- Scaled as one when focused, so the colour ring grows with the card -->
+        <FrameLayout
+            android:id="@+id/holder"
+            android:layout_width="188dp"
+            android:layout_height="106dp"
+            android:clipChildren="false">
+
+            <!-- Colour-button ring OUTSIDE the card (dock row 1 only; sized in code) -->
+            <View
+                android:id="@+id/rim"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <FrameLayout
+                android:id="@+id/card"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/tile_bg">
+
+                <ImageView
+                    android:id="@+id/banner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY" />
+
+                <LinearLayout
+                    android:id="@+id/fallback"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/icon"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp" />
+
+                    <TextView
+                        android:id="@+id/fallback_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/outfit_regular"
+                        android:maxLines="1"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textColor="#E6FFFFFF"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- Empty dock slot -->
+                <TextView
+                    android:id="@+id/plus"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/outfit_thin"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:text="+"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="30sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:alpha="0"
+            android:ellipsize="end"
+            android:fontFamily="@font/outfit_regular"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="#F2FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+</FrameLayout>

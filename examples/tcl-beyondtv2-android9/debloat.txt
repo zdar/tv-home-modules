@@ -1,0 +1,42 @@
+# TCL BeyondTV2, Android TV 9 (API 28), European firmware. Debloat used on the test TV.
+# Disabled with tools/disable.py (pm disable-user --user 0), in this order, in small batches.
+# Re-enabled by the firmware at every boot (left alone): com.tcl.notereminder, com.tcl.usercenter.
+# Kept: Live TV / tuner / HDMI (com.tcl.tv, com.tcl.tvinput, com.tcl.tvpassthrough), remote and
+#   Bluetooth services (keyhelp, framework.custom, keycustomfunctionservice, rc.ota,
+#   tcl_bt_rcu_service, autopair), keyboards, Play Store / Services, TCL Media Center,
+#   voice assistant, Chromecast, Miracast, T-Cast / MagiConnect, firmware updates, all HDMI-CEC/ARC.
+# The "unused apps" block is personal choice: ask before disabling any of it.
+
+# telemetry
+com.tcl.bi
+com.tcl.xian.StartandroidService
+com.google.android.feedback
+com.google.android.tv.bugreportsender
+
+# content and ads
+com.tcl.messagebox
+com.tcl.notereminder
+com.tcl.usercenter
+com.tcl.appmarket2
+com.tcl.esticker
+com.google.android.tvrecommendations
+com.google.android.leanbacklauncher.recommendations
+android.autoinstalls.config.tcl.device
+
+# background extras
+com.tcl.tvweishi
+com.tcl.copydatatotv
+com.tcl.UpdatePeripheral
+com.android.printspooler
+com.android.dreams.basic
+
+# unused apps (personal choice)
+com.google.android.youtube.tv
+com.google.android.videos
+com.google.android.music
+com.google.android.play.games
+com.tcl.browser
+
+# after the new launcher works
+com.tcl.partnercustomizer
+com.google.android.tvlauncher

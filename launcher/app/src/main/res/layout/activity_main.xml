@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1920x1080 @ 320 dpi = 960 x 540 dp. Keys are handled in MainActivity, so
+     nothing here takes Android focus. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000"
+    android:descendantFocusability="blocksDescendants">
+
+    <ImageView
+        android:id="@+id/wallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim"
+        android:visibility="gone" />
+
+    <io.github.tvhomemodules.launcher.TallLayout
+        android:id="@+id/viewport"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- The page is taller than the screen and slides up by translationY -->
+        <FrameLayout
+            android:id="@+id/page"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/header"
+                    android:layout_width="match_parent"
+                    android:layout_height="540dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+
+                    <!-- Ambient glow: a radial gradient stretched sideways, no blur -->
+                    <View
+                        android:id="@+id/glow"
+                        android:layout_width="320dp"
+                        android:layout_height="320dp"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="70dp"
+                        android:layout_marginBottom="120dp"
+                        android:scaleX="1.9" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="60dp"
+                        android:layout_marginTop="34dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/greeting"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="17sp" />
+
+                        <TextClock
+                            android:id="@+id/clock"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="-2dp"
+                            android:includeFontPadding="false"
+                            android:textColor="#FFFFFFFF"
+                            android:textSize="66sp" />
+
+                        <TextClock
+                            android:id="@+id/date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="#CCFFFFFF"
+                            android:textSize="19sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/pills"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="44dp"
+                        android:layout_marginEnd="60dp"
+                        android:clipChildren="false"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/pill_inputs"
+                            style="@style/Pill">
+                            <ImageView style="@style/PillIcon" android:src="@drawable/ic_input" />
+                            <TextView style="@style/PillText" android:text="@string/inputs" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/pill_net"
+                            style="@style/Pill"
+                            android:layout_marginStart="12dp">
+                            <ImageView android:id="@+id/net_icon" style="@style/PillIcon" android:src="@drawable/ic_wifi" />
+                            <TextView android:id="@+id/net_label" style="@style/PillText" android:maxWidth="220dp" android:text="@string/wifi" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/pill_settings"
+                            style="@style/Pill"
+                            android:layout_width="40dp"
+                            android:layout_marginStart="12dp"
+                            android:paddingStart="0dp"
+                            android:paddingEnd="0dp">
+                            <ImageView style="@style/PillIcon" android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_settings" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Doorbell live view; hidden unless doorbell_url is set -->
+                    <FrameLayout
+                        android:id="@+id/doorbell"
+                        android:layout_width="336dp"
+                        android:layout_height="189dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="98dp"
+                        android:layout_marginEnd="60dp"
+                        android:background="@drawable/tile_bg"
+                        android:visibility="gone">
+
+                        <TextureView
+                            android:id="@+id/doorbell_video"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                        <!-- Border that flashes on doorbell events -->
+                        <View
+                            android:id="@+id/doorbell_flash"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:alpha="0" />
+
+                        <TextView
+                            android:id="@+id/doorbell_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|start"
+                            android:layout_margin="8dp"
+                            android:background="@drawable/pill_bg"
+                            android:fontFamily="@font/outfit_regular"
+                            android:paddingStart="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="3dp"
+                            android:text="@string/doorbell"
+                            android:textColor="#F2FFFFFF"
+                            android:textSize="12sp" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="60dp"
+                        android:layout_marginBottom="262dp"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="#F5FFFFFF"
+                        android:textSize="46sp" />
+
+                    <!-- Two rows: row 1 = colour buttons, row 2 = more favourites -->
+                    <LinearLayout
+                        android:id="@+id/dock"
+                        android:layout_width="864dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="28dp"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:orientation="vertical"
+                        android:paddingTop="20dp"
+                        android:paddingBottom="14dp">
+
+                        <!-- Row 1: four full-size tiles with colour rings -->
+                        <LinearLayout
+                            android:id="@+id/dock_row1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clipChildren="false"
+                            android:orientation="horizontal" />
+
+                        <!-- Row 2: eight half-size slots -->
+                        <LinearLayout
+                            android:id="@+id/dock_row2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="22dp"
+                            android:clipChildren="false"
+                            android:orientation="horizontal"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/grid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:paddingStart="48dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="48dp"
+                    android:paddingBottom="48dp" />
+            </LinearLayout>
+
+            <io.github.tvhomemodules.launcher.HighlightView
+                android:id="@+id/highlight"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </io.github.tvhomemodules.launcher.TallLayout>
+
+    <!-- Hold OK on a dock tile: replace / remove / cancel -->
+    <LinearLayout
+        android:id="@+id/slot_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/panel_bg"
+        android:minWidth="320dp"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/inputs_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:background="@drawable/panel_bg"
+        android:minWidth="210dp"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone" />
+</FrameLayout>

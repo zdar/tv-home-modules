@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Built-in defaults. Each can be overridden without rebuilding by pushing
+     /sdcard/Android/data/io.github.tvhomemodules.launcher/files/launcher.properties (see README). -->
+<resources>
+    <!-- Dock row 1, left to right = red, green, yellow, blue remote buttons on Home.
+         Set by the setup (your choice of apps); empty slots show "+" and are filled on the TV. -->
+    <string name="dock_default" translatable="false"></string>
+    <!-- Dock row 2, left to right -->
+    <string name="dock2_default" translatable="false"></string>
+    <!-- Image in the same folder as launcher.properties; empty or missing = pitch black -->
+    <string name="wallpaper_default" translatable="false">wallpaper.jpg</string>
+    <!-- Packages never shown in the grid (e.g. one the firmware re-enables at every boot) -->
+    <string name="hidden_default" translatable="false"></string>
+    <!-- App that plays tuner channels and HDMI passthrough (e.g. com.tcl.tv on TCL); empty = system default -->
+    <string name="live_tv_package" translatable="false"></string>
+    <!-- HOLD this key (Android keycode) to toggle the full-screen doorbell from anywhere;
+         a short press is left alone. 186 = PROG_BLUE, 0 = off.
+         (The Netflix button can't be used on this TCL: its KEY_UNKNOWN is dropped by the firmware.) -->
+    <integer name="doorbell_hold_key">186</integer>
+    <integer name="doorbell_hold_ms">700</integer>
+</resources>

@@ -1,0 +1,19 @@
+# Per-TV data: backups, screenshots, logs, built APKs
+backup/
+shots/
+apks/
+*.apk
+
+# Build output and local SDK paths
+build/
+.gradle/
+.idea/
+local.properties
+platform-tools/
+
+# Never commit settings that hold your doorbell login or HA token
+launcher.properties
+
+__pycache__/
+*.pyc
+.DS_Store
