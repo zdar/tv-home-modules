@@ -13,7 +13,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextClock;
 import android.widget.TextView;
 
 import java.util.Random;
@@ -35,7 +34,19 @@ public class ClockDream extends DreamService {
     private ImageView[] views;
     private int front;
     private TextView caption;
-    private TextClock clock;
+    private TextView clock;
+
+    // A TextClock's own minute ticker stopped inside the dream (it showed the start time a
+    // quarter of an hour later), so the dream sets the time itself at every minute change
+    private final Runnable tick = new Runnable() {
+        @Override
+        public void run() {
+            long now = System.currentTimeMillis();
+            clock.setText(android.text.format.DateFormat.format(
+                    android.text.format.DateFormat.is24HourFormat(ClockDream.this) ? "H:mm" : "h:mm", now));
+            ui.postDelayed(this, 60_000 - now % 60_000 + 50);
+        }
+    };
     private boolean capLeft; // caption side while it fits in a band
     private long minMs, maxMs;
 
@@ -56,8 +67,6 @@ public class ClockDream extends DreamService {
         caption.setTypeface(getResources().getFont(R.font.outfit_light));
         clock = findViewById(R.id.dream_clock);
         clock.setTypeface(getResources().getFont(R.font.outfit_thin));
-        clock.setFormat12Hour("h:mm");
-        clock.setFormat24Hour("H:mm");
         DisplayMetrics dm = getResources().getDisplayMetrics();
         source = new ArtSource(this, dm.widthPixels, dm.heightPixels);
         Config c = Config.load(this);
@@ -89,6 +98,7 @@ public class ClockDream extends DreamService {
     public void onDreamingStarted() {
         super.onDreamingStarted();
         startedAt = android.os.SystemClock.uptimeMillis();
+        tick.run(); // removed with everything else in onDreamingStopped
         current = this;
         // Something on screen at once: a cached painting, then fetch the next one
         worker.execute(() -> {

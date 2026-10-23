@@ -28,7 +28,9 @@ Set up the art screen saver that is built into this repo's launcher (`ClockDream
   - a faint caption (artist, title, year, museum; 11 sp at 20 % opacity, fainter than the
     clock), always visible, stacked in the black side band at the painting's bottom edge and
     aligned towards it;
-  - a tiny dim clock (30 %) at the top of the opposite band. Clock and caption swap sides with
+  - a tiny dim clock (30 %) at the top of the opposite band. It's a plain text view the
+    dream updates at every minute change: a `TextClock`'s own ticker stopped inside the dream
+    on the test TV and kept showing the start time. Clock and caption swap sides with
     each painting against burn-in;
   - if the side band is under 150 dp, the painting is scaled down just enough to leave a
     40 dp strip under it, and the caption is one line there, right-aligned to the painting and just under it,
