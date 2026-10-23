@@ -59,6 +59,10 @@ often can't resolve `.local` names. **Never ask me for, type, store or print my 
   - **Back** or Red closes.
 
   It auto-hides after 30 s and reopens on the last light used.
+- **Over the screen saver** (module 10) the panel opens on top of the painting, and closing it
+  leaves the screen saver running. The dream acts on the Red key only at the release of a short
+  press it saw go down; the key helper keeps a hold's release and every key while the panel is
+  up.
 - **No colour-temperature control** by default, so HA automations (adaptive lighting) keep
   control. Add it only if I ask.
 - **Status lines:** not set up, token rejected, HA unreachable, no lights.

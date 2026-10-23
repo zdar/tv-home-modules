@@ -1,4 +1,4 @@
-package io.github.tvhomemodules.launcher;
+﻿package io.github.tvhomemodules.launcher;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -66,14 +66,24 @@ public class ClockDream extends DreamService {
         Config c = Config.load(this);
         minMs = c.artMinMs;
         maxMs = Math.max(c.artMaxMs, minMs);
+        haHoldKey = c.haHoldKey;
     }
 
-    private long startedAt;
+    private long startedAt, haDownTime = -1;
+    private int haHoldKey;
 
     @Override
     public boolean dispatchKeyEvent(android.view.KeyEvent e) {
         // Still the press that started us (released after we came up): ignore it
         if (e.getDownTime() < startedAt) return true;
+        // The lights-panel key acts on release: a hold opens the panel over the painting
+        // (the key helper keeps that release and every key while the panel is up),
+        // so only the release of a short press that we saw go down ends the screen saver
+        if (haHoldKey != 0 && e.getKeyCode() == haHoldKey) {
+            if (e.getAction() == android.view.KeyEvent.ACTION_DOWN) haDownTime = e.getDownTime();
+            else if (e.getDownTime() == haDownTime) wakeUp();
+            return true;
+        }
         if (e.getAction() == android.view.KeyEvent.ACTION_DOWN) wakeUp(); // any new press: back to what was on
         return true;
     }

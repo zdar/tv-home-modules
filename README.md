@@ -72,7 +72,7 @@ Accessibility). Short presses are never affected.
 
 | Hold | Does | Module | Setting (`0` = off) |
 |---|---|---|---|
-| **Red** | Lights panel; ▲▼ choose, OK on/off, ◀ ▶ dim, Back closes, hides itself after 30 s | 30 | `ha_hold_key=183` |
+| **Red** | Lights panel; ▲▼ choose, OK on/off, ◀ ▶ dim, Back closes, hides itself after 30 s. Over the screen saver it doesn't end it | 30 | `ha_hold_key=183` |
 | **Yellow** | Start the screen saver now; any *new* press ends it | 10 | `screensaver_hold_key=185` |
 | **Blue** | Doorbell full screen on/off | 20 | `doorbell_hold_key=186` |
 
