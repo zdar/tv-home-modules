@@ -94,7 +94,8 @@ deduplicated. Each event's action is configurable (`on_ring`, `on_person`, … =
 ### Screen saver (module 10)
 
 Paintings up to 1910 (about 365 works), fitted to the screen height and changed every
-5–15 min, with a faint caption and a tiny dim clock. It works offline from a cache of 25
+5–15 min. A faint caption sits in the black band beside the painting (or in a strip under a
+wide one, never over it), with a tiny dim clock on the opposite side. It works offline from a cache of 25
 images, and puts the TV into standby after 60 min.
 
 ## Getting started

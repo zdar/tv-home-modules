@@ -25,8 +25,17 @@ Set up the art screen saver that is built into this repo's launcher (`ClockDream
   - each painting fills the full screen height on black and is never cropped;
   - a new random one every `art_change_min`–`art_change_max` [5–15] minutes, no repeat of the
     last 80, with a 2 s crossfade;
-  - one faint 11 sp caption line (artist, title, year) that fades out after 10 s;
-  - a tiny dim clock that changes corner against burn-in. Nothing else on screen.
+  - a faint caption (artist, title, year, museum; 11 sp at 20 % opacity, fainter than the
+    clock), always visible, stacked in the black side band at the painting's bottom edge and
+    aligned towards it;
+  - a tiny dim clock (30 %) at the top of the opposite band. Clock and caption swap sides with
+    each painting against burn-in;
+  - if the side band is under 110 dp, the painting is scaled down just enough to leave a
+    40 dp strip under it, and the caption is one line there, right-aligned to the painting
+    (clock top left). **Never put text over the painting:** on real paintings it was
+    unreadable.
+
+  Nothing else on screen.
 - **Network:**
   - It downloads one image at a time, only while it runs, and keeps 25 cached, so it works
     offline.
