@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.dreams.DreamService;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -21,7 +22,7 @@ import java.util.concurrent.Executors;
 
 /** Screen saver in the spirit of a "frame" TV: old-master paintings from museum
  *  open-access collections (ArtSource), a new one every 5-15 minutes with a slow
- *  crossfade, a caption that fades away, and a small clock that changes corner
+ *  crossfade, a faint caption in the black band beside it, and a small clock opposite
  *  with each painting. After an hour the TV goes to standby.
  *  Doorbell pop-ups keep working over it; a ring ends it (wakeAll). */
 public class ClockDream extends DreamService {
@@ -33,10 +34,9 @@ public class ClockDream extends DreamService {
     private ArtSource source;
     private ImageView[] views;
     private int front;
-    private View caption;
-    private TextView title, meta;
+    private TextView caption;
     private TextClock clock;
-    private boolean clockRight = true;
+    private boolean capLeft; // caption side while it fits in a band
     private long minMs, maxMs;
 
     static void wakeAll() {
@@ -53,10 +53,7 @@ public class ClockDream extends DreamService {
         setContentView(R.layout.dream_clock);
         views = new ImageView[]{findViewById(R.id.art_a), findViewById(R.id.art_b)};
         caption = findViewById(R.id.art_caption);
-        title = findViewById(R.id.art_title);
-        meta = findViewById(R.id.art_meta);
-        title.setTypeface(getResources().getFont(R.font.outfit_regular));
-        meta.setTypeface(getResources().getFont(R.font.outfit_extralight));
+        caption.setTypeface(getResources().getFont(R.font.outfit_light));
         clock = findViewById(R.id.dream_clock);
         clock.setTypeface(getResources().getFont(R.font.outfit_thin));
         clock.setFormat12Hour("h:mm");
@@ -149,25 +146,89 @@ public class ClockDream extends DreamService {
         Log.i(TAG, "painting: " + a.title + " — " + a.artist + " (" + a.museum + ")");
         ImageView in = views[1 - front], out = views[front];
         release(in);
+        // Where the painting lands. With room beside it the caption goes in the side band;
+        // without, the painting is scaled down just enough to leave a black strip under it
+        // for one caption line (text over a painting is unreadable).
+        View root = (View) caption.getParent();
+        int sw = root.getWidth(), sh = root.getHeight();
+        int w = a.bitmap.getWidth(), h = a.bitmap.getHeight();
+        float d = getResources().getDisplayMetrics().density;
+        boolean inBand = true;
+        int pw = 0, ph = 0, top = 0, pad = 0;
+        if (sw > 0 && sh > 0 && w > 0 && h > 0) {
+            float s = Math.min((float) sw / w, (float) sh / h); // fitCenter
+            pw = Math.round(w * s);
+            ph = Math.round(h * s);
+            inBand = (sw - pw) / 2f >= MIN_BAND_DP * d;
+            int strip = Math.round(STRIP_DP * d);
+            if (!inBand && (sh - ph) / 2 < strip) {
+                pad = strip;
+                s = Math.min((float) sw / w, (float) (sh - pad) / h);
+                pw = Math.round(w * s);
+                ph = Math.round(h * s);
+            }
+            top = (sh - pad - ph) / 2;
+        }
+        in.setPadding(0, 0, 0, pad);
         in.setImageBitmap(a.bitmap);
         in.animate().alpha(1f).setDuration(2000).start();
         out.animate().alpha(0f).setDuration(2000).withEndAction(() -> release(out)).start();
         front = 1 - front;
-        // One faint line, title then artist · year, gone after 10 s
-        title.setText(a.title);
-        StringBuilder m = new StringBuilder();
-        for (String s : new String[]{a.artist, a.date}) {
-            if (s != null && !s.isEmpty()) m.append(m.length() > 0 ? " · " : "").append(s);
-        }
-        meta.setText(m);
-        caption.animate().cancel();
-        caption.animate().alpha(0.5f).setDuration(1500).setStartDelay(2000).withEndAction(() ->
-                caption.animate().alpha(0f).setDuration(2500).setStartDelay(10000).start()).start();
-        // Clock changes corner with each painting so nothing burns in
-        clockRight = !clockRight;
+        if (pw == 0) return;
+        // The clock always sits opposite the caption. Caption in a band: both swap sides
+        // with each painting so nothing burns in. Caption under the painting: it is
+        // always bottom right, so the clock is top left.
+        if (inBand) capLeft = !capLeft;
+        boolean left = inBand && capLeft;
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) clock.getLayoutParams();
-        lp.gravity = Gravity.TOP | (clockRight ? Gravity.END : Gravity.START);
+        lp.gravity = Gravity.TOP | (left ? Gravity.END : Gravity.START);
         clock.setLayoutParams(lp);
+        int fpw = pw, fph = ph, ftop = top;
+        boolean fBand = inBand;
+        caption.animate().cancel();
+        caption.animate().alpha(0f).setDuration(600).withEndAction(() -> {
+            placeCaption(a, sw, sh, fpw, fph, ftop, fBand, left);
+            caption.animate().alpha(CAPTION_ALPHA).setDuration(1500).setStartDelay(900).start();
+        }).start();
+    }
+
+    private static final float CAPTION_ALPHA = 0.2f; // the clock is 0.3
+    private static final int MIN_BAND_DP = 110, STRIP_DP = 40, GAP_DP = 16, EDGE_DP = 14;
+
+    /** In the black band beside the painting (stacked, next to its bottom edge, aligned
+     *  towards it), or one line in the strip under the painting, aligned to its right edge. */
+    private void placeCaption(ArtSource.Art a, int sw, int sh, int pw, int ph, int top, boolean inBand, boolean left) {
+        float d = getResources().getDisplayMetrics().density;
+        int band = (sw - pw) / 2, below = sh - top - ph;
+        int gap = Math.round(GAP_DP * d), edge = Math.round(EDGE_DP * d);
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) caption.getLayoutParams();
+        lp.gravity = Gravity.BOTTOM | Gravity.START;
+        lp.bottomMargin = inBand ? below + edge : Math.max(0, (below - caption.getLineHeight()) / 2);
+        if (inBand) {
+            lp.width = band - gap - edge;
+            lp.leftMargin = left ? edge : band + pw + gap;
+            caption.setGravity(left ? Gravity.END : Gravity.START);
+            caption.setSingleLine(false);
+            caption.setMaxLines(6);
+            caption.setEllipsize(TextUtils.TruncateAt.END);
+            caption.setText(join("\n", a.artist, a.title, a.date, a.museum));
+        } else {
+            lp.width = band + pw - edge; // ends at the painting's right edge, may start left of it
+            lp.leftMargin = edge;
+            caption.setGravity(Gravity.END);
+            caption.setSingleLine(true);
+            caption.setEllipsize(TextUtils.TruncateAt.START);
+            caption.setText(join("  ·  ", a.artist, a.title, a.date, a.museum));
+        }
+        caption.setLayoutParams(lp);
+    }
+
+    private static String join(String sep, String... parts) {
+        StringBuilder b = new StringBuilder();
+        for (String p : parts) {
+            if (p != null && !p.isEmpty()) b.append(b.length() > 0 ? sep : "").append(p);
+        }
+        return b.toString();
     }
 
     private static void release(ImageView v) {
