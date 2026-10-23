@@ -1,4 +1,4 @@
-﻿package io.github.tvhomemodules.launcher;
+package io.github.tvhomemodules.launcher;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
