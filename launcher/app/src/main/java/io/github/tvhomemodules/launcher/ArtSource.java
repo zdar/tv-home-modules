@@ -30,13 +30,15 @@ import java.util.Random;
  *  highlights), Cleveland Museum of Art (highlights, CC0) and the Art Institute
  *  of Chicago (boosted public-domain paintings, when its API is up); all up to
  *  art_until_year (default 1910). The list of works is refreshed every two
- *  weeks; images are downloaded one at a time and kept in a small cache, so it
- *  keeps going offline. Runs on a background thread. */
+ *  weeks; each work is downloaded once, resized to the screen and kept on the TV
+ *  with its details, and the next one is fetched while the current one is on
+ *  screen. Works offline from what is stored. Runs on a background thread. */
 final class ArtSource {
     private static final String TAG = "ArtSource";
     private static final String UA = "Mozilla/5.0 (Linux; Android 9; TV) atvlauncher-screensaver";
     private static final long POOL_MAX_AGE = 14L * 24 * 3600 * 1000;
-    private static final int CACHE_FILES = 25, RECENT = 80;
+    private static final int RECENT = 80;
+    private static final long STORE_MAX_BYTES = 500L * 1024 * 1024;
 
     static final class Art {
         final Bitmap bitmap;
@@ -52,7 +54,9 @@ final class ArtSource {
     }
 
     private final Context ctx;
-    private final File poolFile, cacheDir;
+    private final File poolFile, storeDir;
+    private volatile String[] prepared; // the next painting, already stored
+    private boolean migrated;
     private final SharedPreferences prefs;
     private final Random rnd = new Random();
     private final int maxW, maxH;
@@ -62,29 +66,67 @@ final class ArtSource {
         ctx = c.getApplicationContext();
         untilYear = Config.load(ctx).artUntilYear;
         poolFile = new File(ctx.getFilesDir(), "art_pool_" + untilYear + ".tsv");
-        cacheDir = new File(ctx.getCacheDir(), "art");
-        cacheDir.mkdirs();
+        storeDir = new File(ctx.getFilesDir(), "art");
+        storeDir.mkdirs();
         prefs = ctx.getSharedPreferences("art", Context.MODE_PRIVATE);
         maxW = screenW;
         maxH = screenH;
     }
 
-    /** Next painting, never one of the last RECENT shown; null if nothing at all is available. */
+    /** Next painting, never one of the last RECENT shown; null if nothing at all is available.
+     *  Uses the one prefetch() got ready, so the switch itself needs no network. */
     Art next() {
-        List<String[]> pool = pool();
-        LinkedList<String> recent = new LinkedList<>(Arrays.asList(prefs.getString("recent", "").split("\n")));
-        Collections.shuffle(pool, rnd);
-        for (String[] e : pool) {
-            String key = e[0] + ":" + e[1];
-            if (recent.contains(key)) continue;
-            Art a = fetch(e);
-            if (a == null) continue;
-            recent.addFirst(key);
-            while (recent.size() > RECENT) recent.removeLast();
-            prefs.edit().putString("recent", String.join("\n", recent)).apply();
-            return a;
+        String[] e = prepared;
+        prepared = null;
+        if (e == null) e = choose();
+        if (e != null) {
+            Art a = load(e);
+            if (a != null) {
+                markShown(e);
+                return a;
+            }
         }
-        return fromCache(); // offline: show something we already have
+        return fromStore(); // offline: show something we already have
+    }
+
+    /** While a painting is on screen: pick the next one and make sure it is stored. */
+    void prefetch() {
+        if (prepared == null) prepared = choose();
+    }
+
+    /** A painting not shown recently, stored on the TV (downloaded now if it wasn't). */
+    private String[] choose() {
+        migrate();
+        List<String[]> pool = pool();
+        LinkedList<String> recent = recent();
+        Collections.shuffle(pool, rnd);
+        int downloads = 0;
+        String[] fallback = null;
+        for (String[] e : pool) {
+            if (recent.contains(e[0] + ":" + e[1])) continue;
+            if (stored(e)) return e;
+            if (downloads < 3) { // offline or failing: don't time out across the whole list
+                downloads++;
+                if (store(e)) return e;
+            }
+        }
+        for (String[] e : pool) { // a stored one, even if shown lately
+            if (stored(e)) fallback = e;
+        }
+        return fallback;
+    }
+
+    private LinkedList<String> recent() {
+        return new LinkedList<>(Arrays.asList(prefs.getString("recent", "").split("\n")));
+    }
+
+    private void markShown(String[] e) {
+        LinkedList<String> recent = recent();
+        recent.remove(e[0] + ":" + e[1]);
+        recent.addFirst(e[0] + ":" + e[1]);
+        while (recent.size() > RECENT) recent.removeLast();
+        prefs.edit().putString("recent", String.join("\n", recent)).apply();
+        imageFile(e).setLastModified(System.currentTimeMillis()); // least recently shown go first when trimming
     }
 
     // ------------------------------------------------------------------ the list of works
@@ -185,12 +227,26 @@ final class ArtSource {
 
     // ------------------------------------------------------------------ images
 
-    private Art fetch(String[] e) {
+    // Each work is stored once on the TV (files/art, which Android doesn't clear like the
+    // cache): the image resized to the screen plus a .txt with title, artist, date, museum.
+    // A stored work is shown without any network call; only new ones are downloaded.
+
+    private File imageFile(String[] e) {
+        return new File(storeDir, (e[0] + "_" + e[1]).replaceAll("\\W", "_") + ".jpg");
+    }
+
+    private boolean stored(String[] e) {
+        File f = imageFile(e);
+        return f.isFile() && new File(f.getPath() + ".txt").isFile();
+    }
+
+    /** Download a work (and, for the Met, its details), resize it to the screen and store it. */
+    private boolean store(String[] e) {
         try {
             String url = e[2], title = e[3], artist = e[4], date = e[5], museum;
             if ("met".equals(e[0])) {
                 JSONObject o = new JSONObject(get("https://collectionapi.metmuseum.org/public/collection/v1/objects/" + e[1]));
-                if (!o.optBoolean("isPublicDomain") || o.optInt("objectEndDate", 9999) > untilYear) return null;
+                if (!o.optBoolean("isPublicDomain") || o.optInt("objectEndDate", 9999) > untilYear) return false;
                 url = o.optString("primaryImage");
                 title = clean(o.optString("title"));
                 artist = clean(o.optString("artistDisplayName"));
@@ -199,32 +255,83 @@ final class ArtSource {
             } else {
                 museum = "cma".equals(e[0]) ? "The Cleveland Museum of Art" : "The Art Institute of Chicago";
             }
-            if (url == null || url.isEmpty()) return null;
-            File f = new File(cacheDir, (e[0] + "_" + e[1]).replaceAll("\\W", "_") + ".jpg");
-            if (!f.isFile()) download(url, f);
+            if (url == null || url.isEmpty()) return false;
+            File f = imageFile(e), orig = new File(f.getPath() + ".orig");
+            download(url, orig);
+            boolean ok = shrink(orig, f);
+            orig.delete();
+            if (!ok) return false;
             write(new File(f.getPath() + ".txt"), title + "\n" + artist + "\n" + date + "\n" + museum);
-            trimCache();
-            Bitmap b = decode(f);
-            return b == null ? null : new Art(b, title, artist, date, museum);
+            trimStore();
+            Log.i(TAG, "stored " + f.getName() + " (" + f.length() / 1024 + " KB)");
+            return true;
         } catch (Exception ex) {
             Log.w(TAG, e[0] + " " + e[1] + ": " + ex.getMessage());
-            return null;
+            return false;
         }
     }
 
-    /** A painting already on disk (instant, no network), or null if the cache is empty. */
-    Art cached() {
-        return fromCache();
+    /** The original (often 4000+ px, several MB) re-encoded at screen size. */
+    private boolean shrink(File from, File to) {
+        Bitmap b = decode(from);
+        if (b == null) return false;
+        File tmp = new File(to.getPath() + ".part");
+        try (OutputStream out = new FileOutputStream(tmp)) {
+            b.compress(Bitmap.CompressFormat.JPEG, 92, out);
+        } catch (Exception ex) {
+            return false;
+        } finally {
+            b.recycle();
+        }
+        return tmp.renameTo(to);
     }
 
-    private Art fromCache() {
-        File[] files = cacheDir.listFiles((d, n) -> n.endsWith(".jpg"));
-        if (files == null || files.length == 0) return null;
-        File f = files[rnd.nextInt(files.length)];
+    private Art load(String[] e) {
+        return load(imageFile(e));
+    }
+
+    private Art load(File f) {
         Bitmap b = decode(f);
         if (b == null) return null;
         String[] m = readText(new File(f.getPath() + ".txt")).split("\n", -1);
         return new Art(b, m.length > 0 ? m[0] : "", m.length > 1 ? m[1] : "", m.length > 2 ? m[2] : "", m.length > 3 ? m[3] : "");
+    }
+
+    /** A painting already on the TV (instant, no network), or null if none is stored yet. */
+    Art cached() {
+        Art a = fromStore();
+        if (a != null) return a;
+        // Not moved over yet (migrate() runs later, in the background): the old cache
+        File[] old = new File(ctx.getCacheDir(), "art").listFiles((d, n) -> n.endsWith(".jpg"));
+        return old == null || old.length == 0 ? null : load(old[rnd.nextInt(old.length)]);
+    }
+
+    private Art fromStore() {
+        File[] files = storeDir.listFiles((d, n) -> n.endsWith(".jpg"));
+        if (files == null || files.length == 0) return null;
+        return load(files[rnd.nextInt(files.length)]);
+    }
+
+    /** Once: move what the old 25-picture cache holds into the store, at screen size. */
+    private void migrate() {
+        if (migrated) return;
+        migrated = true;
+        File old = new File(ctx.getCacheDir(), "art");
+        File[] files = old.listFiles();
+        if (files == null) return;
+        int n = 0;
+        for (File f : files) {
+            if (f.getName().endsWith(".jpg")) {
+                File to = new File(storeDir, f.getName()), meta = new File(f.getPath() + ".txt");
+                if (!to.isFile() && meta.isFile() && shrink(f, to)) {
+                    meta.renameTo(new File(to.getPath() + ".txt"));
+                    n++;
+                }
+            }
+        }
+        for (File f : files) f.delete();
+        old.delete();
+        if (n > 0) Log.i(TAG, "moved " + n + " cached paintings into the store");
     }
 
     /** Decoded no larger than the screen (originals can be 4000+ px). */
@@ -251,13 +358,19 @@ final class ArtSource {
         return b;
     }
 
-    private void trimCache() {
-        File[] files = cacheDir.listFiles((d, n) -> n.endsWith(".jpg"));
-        if (files == null || files.length <= CACHE_FILES) return;
+    /** Safety cap only: the whole collection at screen size is about 200 MB. */
+    private void trimStore() {
+        File[] files = storeDir.listFiles((d, n) -> n.endsWith(".jpg"));
+        if (files == null) return;
+        long total = 0;
+        for (File f : files) total += f.length();
+        if (total <= STORE_MAX_BYTES) return;
         Arrays.sort(files, (a, b) -> Long.compare(a.lastModified(), b.lastModified()));
-        for (int i = 0; i < files.length - CACHE_FILES; i++) {
-            new File(files[i].getPath() + ".txt").delete();
-            files[i].delete();
+        for (File f : files) {
+            if (total <= STORE_MAX_BYTES) break;
+            total -= f.length();
+            new File(f.getPath() + ".txt").delete();
+            f.delete();
         }
     }
 

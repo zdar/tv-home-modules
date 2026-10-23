@@ -37,7 +37,11 @@ Set up the art screen saver that is built into this repo's launcher (`ClockDream
 
   Nothing else on screen.
 - **Network:**
-  - It downloads one image at a time, only while it runs, and keeps 25 cached, so it works
+  - Each painting is downloaded once, resized to the screen (about 0.5 MB) and stored on the
+    TV with its details in the app's files folder (not the cache, which Android may clear).
+    The whole collection is about 200 MB (500 MB cap).
+  - A stored painting needs no network, and the next one is downloaded while the current one
+    is on screen (at most 3 download attempts per pick, then a stored one), so it works
     offline.
   - It starts with a **cached** painting so something shows at once.
 - **Standby:** after `art_standby_min` [60] minutes it puts the TV into standby

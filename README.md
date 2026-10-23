@@ -95,8 +95,9 @@ deduplicated. Each event's action is configurable (`on_ring`, `on_person`, … =
 
 Paintings up to 1910 (about 365 works), fitted to the screen height and changed every
 5–15 min. A faint caption sits in the black band beside the painting (or in a strip under a
-wide one, never over it), with a tiny dim clock on the opposite side. It works offline from a cache of 25
-images, and puts the TV into standby after 60 min.
+wide one, never over it), with a tiny dim clock on the opposite side. Each painting is downloaded once and stored on the
+TV at screen size (about 200 MB for all), the next one in advance, so it works offline from
+what is stored. It puts the TV into standby after 60 min.
 
 ## Getting started
 

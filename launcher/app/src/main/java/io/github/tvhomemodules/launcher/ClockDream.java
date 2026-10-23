@@ -100,6 +100,7 @@ public class ClockDream extends DreamService {
                 }
                 if (a != null) {
                     show(a);
+                    worker.execute(source::prefetch); // the next one, while this one is on screen
                     ui.postDelayed(this::nextPainting, minMs + (long) (rnd.nextDouble() * (maxMs - minMs)));
                 } else {
                     nextPainting(); // empty cache (first run): download straight away
@@ -135,7 +136,10 @@ public class ClockDream extends DreamService {
                     if (a != null) a.bitmap.recycle();
                     return;
                 }
-                if (a != null) show(a);
+                if (a != null) {
+                    show(a);
+                    worker.execute(source::prefetch); // the next one, while this one is on screen
+                }
                 long wait = a == null ? 60_000 : minMs + (long) (rnd.nextDouble() * (maxMs - minMs));
                 ui.postDelayed(this::nextPainting, wait);
             });
@@ -232,6 +236,13 @@ public class ClockDream extends DreamService {
             caption.setSingleLine(true);
             caption.setEllipsize(TextUtils.TruncateAt.START);
             caption.setText(join("  ·  ", a.artist, a.title, a.date, a.museum));
+            // Once laid out: put the clock's baseline on the caption's (their font padding differs)
+            caption.post(() -> {
+                if (caption.getBaseline() < 0 || clock.getBaseline() < 0) return;
+                cl.bottomMargin = lp.bottomMargin + (caption.getHeight() - caption.getBaseline())
+                        - (clock.getHeight() - clock.getBaseline());
+                clock.setLayoutParams(cl);
+            });
         }
         caption.setLayoutParams(lp);
     }
