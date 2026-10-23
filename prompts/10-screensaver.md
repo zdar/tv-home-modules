@@ -30,9 +30,9 @@ Set up the art screen saver that is built into this repo's launcher (`ClockDream
     aligned towards it;
   - a tiny dim clock (30 %) at the top of the opposite band. Clock and caption swap sides with
     each painting against burn-in;
-  - if the side band is under 110 dp, the painting is scaled down just enough to leave a
-    40 dp strip under it, and the caption is one line there, right-aligned to the painting
-    (clock top left). **Never put text over the painting:** on real paintings it was
+  - if the side band is under 150 dp, the painting is scaled down just enough to leave a
+    40 dp strip under it, and the caption is one line there, right-aligned to the painting and just under it,
+    with the clock at the left of the same strip. **Never put text over the painting:** on real paintings it was
     unreadable.
 
   Nothing else on screen.

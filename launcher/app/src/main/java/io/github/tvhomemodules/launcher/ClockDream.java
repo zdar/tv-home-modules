@@ -177,12 +177,9 @@ public class ClockDream extends DreamService {
         if (pw == 0) return;
         // The clock always sits opposite the caption. Caption in a band: both swap sides
         // with each painting so nothing burns in. Caption under the painting: it is
-        // always bottom right, so the clock is top left.
+        // always bottom right, and the clock is at the left of the same strip.
         if (inBand) capLeft = !capLeft;
         boolean left = inBand && capLeft;
-        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) clock.getLayoutParams();
-        lp.gravity = Gravity.TOP | (left ? Gravity.END : Gravity.START);
-        clock.setLayoutParams(lp);
         int fpw = pw, fph = ph, ftop = top;
         boolean fBand = inBand;
         caption.animate().cancel();
@@ -193,7 +190,7 @@ public class ClockDream extends DreamService {
     }
 
     private static final float CAPTION_ALPHA = 0.2f; // the clock is 0.3
-    private static final int MIN_BAND_DP = 110, STRIP_DP = 40, GAP_DP = 16, EDGE_DP = 14;
+    private static final int MIN_BAND_DP = 150, STRIP_DP = 40, UNDER_DP = 10, GAP_DP = 16, EDGE_DP = 14;
 
     /** In the black band beside the painting (stacked, next to its bottom edge, aligned
      *  towards it), or one line in the strip under the painting, aligned to its right edge. */
@@ -203,7 +200,21 @@ public class ClockDream extends DreamService {
         int gap = Math.round(GAP_DP * d), edge = Math.round(EDGE_DP * d);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) caption.getLayoutParams();
         lp.gravity = Gravity.BOTTOM | Gravity.START;
-        lp.bottomMargin = inBand ? below + edge : Math.max(0, (below - caption.getLineHeight()) / 2);
+        // Under the painting: just below its bottom edge, however tall the black strip is
+        lp.bottomMargin = inBand ? below + edge
+                : Math.max(0, below - Math.round(UNDER_DP * d) - caption.getLineHeight());
+        FrameLayout.LayoutParams cl = (FrameLayout.LayoutParams) clock.getLayoutParams();
+        if (inBand) { // top of the other band
+            cl.gravity = Gravity.TOP | (left ? Gravity.END : Gravity.START);
+            cl.leftMargin = cl.rightMargin = cl.topMargin = edge;
+            cl.bottomMargin = 0;
+        } else { // left end of the strip under the painting, level with the caption
+            cl.gravity = Gravity.BOTTOM | Gravity.START;
+            cl.leftMargin = Math.max(band, edge);
+            cl.bottomMargin = lp.bottomMargin;
+            cl.topMargin = cl.rightMargin = 0;
+        }
+        clock.setLayoutParams(cl);
         if (inBand) {
             lp.width = band - gap - edge;
             lp.leftMargin = left ? edge : band + pw + gap;
@@ -213,8 +224,10 @@ public class ClockDream extends DreamService {
             caption.setEllipsize(TextUtils.TruncateAt.END);
             caption.setText(join("\n", a.artist, a.title, a.date, a.museum));
         } else {
-            lp.width = band + pw - edge; // ends at the painting's right edge, may start left of it
-            lp.leftMargin = edge;
+            // Ends at the painting's right edge (kept off the screen edge), starts after the clock
+            int clockW = clock.getWidth() > 0 ? clock.getWidth() : Math.round(80 * d);
+            lp.leftMargin = cl.leftMargin + clockW + gap;
+            lp.width = Math.max(0, Math.min(band + pw, sw - edge) - lp.leftMargin);
             caption.setGravity(Gravity.END);
             caption.setSingleLine(true);
             caption.setEllipsize(TextUtils.TruncateAt.START);
