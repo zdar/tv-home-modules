@@ -31,18 +31,14 @@ tile, no HA token means no panel, and the screen saver is only used if you selec
 
 ## What it looks like
 
-```
- Good evening                                     [ Inputs ▾ ] [ Ethernet ] [ ⚙ ]
- 21:47                                            ┌──────────────────────┐
- Wednesday 21 October                             │  doorbell (module 20)│
-                                                  └──────────────────────┘
- SmartTube                       ← focused dock app, glow sampled from its banner
- ┏━━━━━━━━┓ ┏━━━━━━━━┓ ┏━━━━━━━━┓ ┏━━━━━━━━┓      row 1: red / green / yellow / blue rings
- ┃  app   ┃ ┃  app   ┃ ┃  app   ┃ ┃  app   ┃      short press on Home = open
- ┗━Hold: Lights━┛ ┗━━━━━━━━┛ ┗━Hold: Art━┛ ┗━Hold: Doorbell━┛
- [app][app] [app][ + ] [ + ][ + ] [ + ][ + ]      row 2: 8 small slots, "+" = add
- ─ all other apps, 4 columns, scroll down ─
-```
+![Home on the test TV, in Czech: greeting, clock and date, the Inputs, network and Settings pills, the doorbell tile (blurred here), the four colour-ring tiles with their hold labels and the second row of eight slots](docs/home.jpg)
+
+*The test TV runs in Czech; the launcher ships English strings too. The doorbell picture is
+blurred for privacy.*
+
+- **Row 1:** the red, green, yellow and blue rings. A short press of that colour on Home opens
+  the app, and the pill on the ring names what holding the button does.
+- **Row 2:** eight small slots; "+" adds an app. Below: all other apps, four columns.
 
 - **Look:** pitch black (or your wallpaper), the Outfit typeface, no blur. One glass highlight
   springs from tile to tile, and the focused tile grows a little and shows its name.
@@ -77,6 +73,8 @@ Accessibility). Short presses are never affected.
 | **Blue** | Doorbell full screen on/off | 20 | `doorbell_hold_key=186` |
 
 The pill on each ring's bottom edge shows what holding that button does.
+
+![The lights panel over Home, held Red: the TV's room (living room, label TV) first with dimmable lights and their brightness, then the kitchen, bathroom and hall; motion-controlled lights smaller](docs/lights-panel.jpg)
 
 ### Doorbell (module 20)
 
