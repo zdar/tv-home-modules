@@ -93,6 +93,8 @@ deduplicated. Each event's action is configurable (`on_ring`, `on_person`, … =
 
 ### Screen saver (module 10)
 
+![The art screen saver on the test TV: a painting, its caption in the side band and the clock](docs/screensaver.jpg)
+
 Paintings up to 1910 (about 365 works), fitted to the screen height and changed every
 5–15 min. A faint caption sits in the black band beside the painting (or in a strip under a
 wide one, never over it), with a tiny dim clock on the opposite side. Each painting is downloaded once and stored on the
