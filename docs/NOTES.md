@@ -22,8 +22,10 @@ See also cleanyourtv's
 
 - **Home takeover:** `cmd package set-home-activity` prints `Success` but the Home key only
   moves once `com.google.android.tvlauncher` is disabled.
-- **Re-enabled at boot:** the firmware re-enables `com.tcl.notereminder` and `com.tcl.usercenter`
-  at every boot. Hide the reminder tile (`hidden=`) instead of fighting it.
+- **Re-enabled at boot?** `com.tcl.notereminder` and `com.tcl.usercenter` were enabled again
+  after the reboot on the test TV, and the reminder tile is hidden (`hidden=`) instead. Not yet
+  re-tested with a 15 s wait before the reboot: cleanyourtv found that Android writes package
+  state about ten seconds after a change, so a quick reboot can look exactly like this.
 - **Live TV:** it's `com.tcl.tv`. It accepts `ACTION_VIEW` on
   `TvContract.buildChannelUriForPassthroughInput(<input id>)`, so set `live_tv_package=com.tcl.tv`.
   The inputs are `com.tcl.tvinput` (tuner) and `com.tcl.tvpassthrough` (HDMI, AV).

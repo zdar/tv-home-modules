@@ -1,6 +1,7 @@
 # TCL BeyondTV2, Android TV 9 (API 28), European firmware. Debloat used on the test TV.
 # Disabled with tools/disable.py (pm disable-user --user 0), in this order, in small batches.
-# Re-enabled by the firmware at every boot (left alone): com.tcl.notereminder, com.tcl.usercenter.
+# Came back enabled after the reboot (left alone): com.tcl.notereminder, com.tcl.usercenter.
+# Not re-tested with a 15 s wait before rebooting, which may keep them off (see docs/NOTES.md).
 # Kept: Live TV / tuner / HDMI (com.tcl.tv, com.tcl.tvinput, com.tcl.tvpassthrough), remote and
 #   Bluetooth services (keyhelp, framework.custom, keycustomfunctionservice, rc.ota,
 #   tcl_bt_rcu_service, autopair), keyboards, Play Store / Services, TCL Media Center,

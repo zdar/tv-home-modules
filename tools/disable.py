@@ -14,10 +14,13 @@ import tv  # noqa: E402
 
 LOG = tv.ROOT / "backup" / "disabled-by-us.txt"
 
-# Android's own core: disabling any of these can leave the TV unable to boot
-# (list from cleanyourtv's tools/disable.sh, cleanyourtv issue #884).
+# Android's own core and the TV middleware: disabling any of these can leave the TV unable to
+# boot (list from cleanyourtv's PROMPT.md and tools/disable.sh, cleanyourtv issues #884, #1578:
+# a Haier set restarted in a loop with com.cltv.mal off).
 CORE = {"android", "com.android.systemui", "com.android.shell", "com.android.phone",
-        "com.android.settings", "com.android.tv.settings"}
+        "com.android.settings", "com.android.tv.settings",
+        "android.ext.services", "android.ext.shared",
+        "com.cltv.mal", "com.mediatek.tis", "com.mediatek.tv.service", "com.mediatek.tv.agent"}
 CORE_SUFFIXES = ("permissioncontroller", "packageinstaller", "extservices", "extshared",
                  "modulemetadata")
 PROVIDERS_OK = {"calendar", "contacts", "userdictionary", "blockednumber"}

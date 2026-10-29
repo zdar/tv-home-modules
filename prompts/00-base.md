@@ -42,6 +42,14 @@ one ask me for it in my own terminal.
   so I can accept it.
 - If 5555 stays closed, the TV may offer only **Wireless debugging** (Google TV sets often do).
   Ask me for the pairing code and port, then run `adb pair`, `adb connect` and `adb tcpip 5555`.
+  Android switches Wireless debugging off whenever Wi-Fi drops.
+- Some firmware runs network ADB on another fixed port (a projector used 5877). If 5555 refuses
+  and nothing advertises Wireless debugging, scan the TV's own TCP ports and try each open one
+  with `TV_PORT`.
+- If the TV turns out not to be Android TV / Google TV (no ADB port at all, or it identifies as
+  Tizen, webOS, Roku OS, VIDAA or SmartCast), stop and point me to
+  <https://cleanyour.tv/not-android>, which turns off the tracking with the remote. Nothing here
+  applies to it.
 - If `adb install` hangs on Android 14, the TV is waiting for an on-screen confirmation. Push
   the APK and run `pm install -r` instead.
 - On macOS, a stock adb that reports "No route to host" while the port is open is being blocked
@@ -57,8 +65,10 @@ one ask me for it in my own terminal.
   - `wm size`, `wm density` and `settings get secure display_density_forced`.
 - Ask me what is plugged into the USB ports, and separately whether the network comes through a
   **USB Ethernet adapter**: some boxes cut USB power while USB debugging is on. If it does, check
-  `dumpsys usb | grep host_connected` and `dumpsys connectivity | grep -o 'Transports: [A-Z]*'`
-  before anything else, and plan to finish in one sitting.
+  `dumpsys connectivity | grep -o 'Transports: [A-Z]*'` before anything else (`WIFI` on a TV I
+  call wired means it fell back, and ADB runs over Wi-Fi), and plan to finish in one sitting.
+  `dumpsys usb | grep host_connected` reading `false` is no proof the adapter is gone: some sets
+  read false with it still up as `eth0`.
 - Note what the TV's sound goes through (built-in speakers, a soundbar or receiver over
   ARC/eARC). Never touch HDMI-CEC or audio packages or settings. After the debloat, confirm ARC
   still works with `dumpsys hdmi_control` (`mArcEstablished`, `mSystemAudioActivated`).
@@ -80,14 +90,19 @@ one ask me for it in my own terminal.
   - Google Play Store and Play Services.
 - **Never disable Android's core:**
   - the permission controller, package installer, ext services, ext shared and module metadata
-    (`com.android.*` or `com.google.android.*`);
+    (`com.android.*` or `com.google.android.*`; ext services and ext shared also as the bare
+    `android.ext.services` and `android.ext.shared`);
   - `com.google.android.overlay.modules*`;
   - `com.android.providers.*`, except calendar, contacts, user dictionary and blocked numbers;
   - `com.android.systemui`, `com.android.shell`, `com.android.phone`, `com.android.settings`,
-    `com.android.tv.settings` and `android`.
+    `com.android.tv.settings` and `android`;
+  - the TV middleware: `com.cltv.mal`, `com.mediatek.tis`, `com.mediatek.tv.service`,
+    `com.mediatek.tv.agent`.
 
   `tools/disable.py` refuses these. A Mi TV Stick never booted again after losing the first
-  six ([cleanyourtv #884](https://github.com/Gathin23/cleanyourtv/issues/884)).
+  six ([cleanyourtv #884](https://github.com/Gathin23/cleanyourtv/issues/884)), and a Haier
+  set restarted in a loop with `com.cltv.mal` off
+  ([cleanyourtv #1578](https://github.com/Gathin23/cleanyourtv/issues/1578)).
 - When a manufacturer package name doesn't say what it does, run `tools/whatis.py <pkg>`
   (dumpsys, never starts it), and ask me if it's still unclear.
 - **Never launch a factory or service package** (`*factory*`, `*fac.menu*`, `*.at.*`, a
@@ -99,11 +114,16 @@ one ask me for it in my own terminal.
   load-bearing with it, and only small batches show which package it was.
 - If `pm disable-user` is refused for **every** package (some firmware, such as Fire OS, does
   this), stop and tell me. Check with `pm list packages -d`, not the exit code.
-- After the last batch, reboot once and compare `pm list packages -d` (unique lines) with the
-  log. If the firmware re-enables some packages at every boot (TCL Android 9 does), note them in
-  the README instead of fighting them. If one of them is an app tile, hide it in the launcher
+- After the last batch, wait about 15 seconds (or run `sync`) before rebooting: Android writes
+  package state to disk about ten seconds after a change, so a reboot sent straight after the
+  batch boots with the old state, and what came back reads as the firmware re-enabling packages
+  it never re-enabled. Then reboot once and compare `pm list packages -d` (unique lines) with
+  the log. If the firmware really re-enables some packages at every boot, note them in the
+  README instead of fighting them. If one of them is an app tile, hide it in the launcher
   (`hidden=`).
-- Offer ad-blocking Private DNS (Android 9+) as an optional extra:
+- Offer ad-blocking Private DNS (Android 9+) as an optional extra. First ask whether my router
+  already filters or routes by domain through its own DNS (Pi-hole, AdGuard Home, a VPN with
+  domain lists): Private DNS goes around it, and blocking on the router is better there.
   `settings put global private_dns_specifier dns.adguard-dns.com`, then
   `settings put global private_dns_mode hostname`.
   - It doesn't block YouTube ads.
@@ -231,11 +251,21 @@ If I take no optional module, leave it off. Otherwise:
   (`restore.py <pkg>`), how to undo everything (`restore.py --launcher`) and how to change the
   dock or wallpaper.
 - **Close network ADB:**
-  1. Switch off USB debugging and Network/ADB debugging.
-  2. Revoke the USB debugging authorisations.
-  3. Reboot.
-  4. Confirm with `python tools/adb-closed.py <tv ip>` that 5555 **refuses** the connection
-     (only "refused" counts).
+  1. If the TV has Wireless debugging, note its port from `adb mdns services`
+     (`_adb-tls-connect._tcp`) first: it has a port of its own and takes a new one each time it
+     starts.
+  2. Switch off Wireless debugging and Network/ADB debugging (whichever the TV has), and USB
+     debugging too unless I ask to keep it.
+  3. Revoke the USB debugging authorisations.
+  4. Check the Wireless debugging port with `python tools/adb-closed.py <tv ip> <port>` straight
+     away, before the reboot.
+  5. Reboot, confirm with `python tools/adb-closed.py <tv ip>` that 5555 **refuses** the
+     connection, and confirm Wireless debugging is still off. If 5555 still answers while USB
+     debugging stays on, that toggle keeps it open on this TV: switch it off too and check
+     again.
 
-  Port 5555 is plaintext. If the network comes through USB Ethernet, unplug and replug the
-  adapter once debugging is off, and have me confirm the TV is on Ethernet, not Wi-Fi.
+  Only the tool saying "refused" counts, not how the toggles look or a connection that dropped
+  (on macOS, `nc`'s "No route to host" proves nothing). Port 5555 is plaintext, and with
+  `ro.adb.secure=0` (or unset) any device on the LAN can get a shell. If the network comes
+  through USB Ethernet, unplug and replug the adapter once debugging is off, and have me confirm
+  the TV is on Ethernet, not Wi-Fi.
