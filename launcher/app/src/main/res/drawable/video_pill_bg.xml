@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pill over live video: dark, so white text stays readable on a bright picture
+     (the frosted pill_bg vanished on a white door frame in the night image) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#99000000" />
+    <stroke android:width="1dp" android:color="#1AFFFFFF" />
+    <corners android:radius="20dp" />
+</shape>

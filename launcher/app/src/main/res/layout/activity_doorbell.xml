@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_margin="36dp"
-        android:background="@drawable/pill_bg"
+        android:background="@drawable/video_pill_bg"
         android:paddingStart="16dp"
         android:paddingTop="6dp"
         android:paddingEnd="16dp"

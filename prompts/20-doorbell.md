@@ -72,7 +72,16 @@ Set up the doorbell features that are built into this repo's launcher. My doorbe
   - runs a **stall watchdog**: no first frame within 12 s → release cleanly and retry after
     5 s, 10 s … up to 60 s, never resetting the backoff before a frame arrives.
 
+  The same 12 s watchdog also runs after the first frame, when the player sits buffering on
+  a frozen picture.
+
   Avoid needless reinstalls while testing.
+- **Incomplete stream description:** once the doorbell sent an SDP without `a=fmtp`. Media3
+  requires it for H.264/H.265 (still on its main branch), so every attempt failed with
+  `missing attribute fmtp` while the network was fine. Restarting the doorbell fixed it. The
+  launcher logs the real cause of a stream error (any URL login masked), so check the log first.
+- **Status pill over video:** use a dark background (`video_pill_bg`). The frosted pill of the
+  top bar vanished on a bright night picture.
 - Use RTSP over **TCP** (Media3 ExoPlayer RTSP, `setForceUseRtpTcp`).
 - **SurfaceView vs TextureView:** a TextureView is composited in the 1080p UI and looks blocky
   full screen. Use a SurfaceView there; the tile can stay a TextureView, because it needs the

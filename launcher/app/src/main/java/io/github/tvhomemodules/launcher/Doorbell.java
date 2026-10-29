@@ -32,6 +32,7 @@ final class Doorbell {
     private String url = "";
     private boolean visible = true;
     private int failures;
+    private boolean playing; // first frame shown on the current player
 
     private final boolean fill;
 
@@ -137,8 +138,19 @@ final class Doorbell {
         }
     }
 
+    /** The underlying reason (e.g. "missing attribute fmtp" when the doorbell sends an
+     *  incomplete stream description), with any login in a URL masked. */
+    private static String causeOf(Throwable e) {
+        Throwable c = e.getCause();
+        while (c != null && c.getCause() != null && c.getCause() != c) c = c.getCause();
+        if (c == null || c.getMessage() == null) return "";
+        return " (" + c.getClass().getSimpleName() + ": "
+                + c.getMessage().replaceAll("//[^@/\\s]+@", "//***@") + ")";
+    }
+
     private void play() {
         release();
+        playing = false;
         status.setText(R.string.doorbell);
         boolean texture = video instanceof TextureView;
         if (texture) video.setAlpha(0f); // a SurfaceView ignores alpha
@@ -160,12 +172,26 @@ final class Doorbell {
             public void onRenderedFirstFrame() {
                 ui.removeCallbacks(stalled);
                 failures = 0;
+                playing = true;
                 if (video instanceof TextureView) video.animate().alpha(1f).setDuration(250).start();
             }
 
             @Override
+            public void onPlaybackStateChanged(int state) {
+                // After the first frame: a stream that stops sending without an error leaves
+                // the player buffering on a frozen picture. Same watchdog as before the first frame.
+                if (!playing) return;
+                if (state == Player.STATE_BUFFERING) {
+                    ui.removeCallbacks(stalled);
+                    ui.postDelayed(stalled, 12_000);
+                } else if (state == Player.STATE_READY) {
+                    ui.removeCallbacks(stalled);
+                }
+            }
+
+            @Override
             public void onPlayerError(@NonNull PlaybackException e) {
-                android.util.Log.w("Doorbell", "stream error: " + e.getErrorCodeName());
+                android.util.Log.w("Doorbell", "stream error: " + e.getErrorCodeName() + causeOf(e));
                 ui.removeCallbacks(stalled);
                 if (!fallbackUrl.isEmpty()) { // e.g. main stream not decodable: use the sub-stream
                     android.util.Log.w("Doorbell", "preferred stream failed, falling back: " + e.getErrorCodeName());
@@ -198,7 +224,9 @@ final class Doorbell {
     private final Runnable stalled = this::onStalled;
 
     private void onStalled() {
-        android.util.Log.w("Doorbell", "no picture after 12 s: reconnecting");
+        android.util.Log.w("Doorbell", (playing ? "picture frozen" : "no picture") + " for 12 s: reconnecting");
+        playing = false;
+        if (video instanceof TextureView) video.setAlpha(0f); // don't leave a frozen frame up
         status.setText(R.string.doorbell_offline);
         if (player != null) {
             player.release();
